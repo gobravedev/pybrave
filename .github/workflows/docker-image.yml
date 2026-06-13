@@ -8,8 +8,8 @@ on:
 
 env:
   IMAGE_NAME: pybrave
-  DOCKERHUB_REPO: wybioinfo/pybrave
-  ACR_REPO: registry.cn-hangzhou.aliyuncs.com/wybioinfo/pybrave
+  DOCKERHUB_REPO: wybioinfo/pybrave-go
+  ACR_REPO: registry.cn-hangzhou.aliyuncs.com/wybioinfo/pybrave-go
 
 jobs:
   build:
