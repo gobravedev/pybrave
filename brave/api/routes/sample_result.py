@@ -30,6 +30,7 @@ from brave.api.service.pipeline  import get_default_module, get_all_module,get_p
 import threading
 import brave.api.service.analysis_result_service as analysis_result_service
 import brave.api.service.pipeline as pipeline_service
+import brave.api.service.go_file_service as go_file_service
 import re
 from brave.api.utils import file_utils
 from brave.api.utils.from_glob_get_file import from_glob_get_file
@@ -223,10 +224,10 @@ def find_analyais_result(analysisResultQuery:AnalysisResultQuery):
 @sample_result.get("/analysis-result/table/{analysis_result_id}")
 def get_analysis_result_table(analysis_result_id,row_num=-1):
     with get_engine().begin() as conn:
-        result_one = analysis_result_service.find_by_analysis_result_id(conn,analysis_result_id)
-        if result_one.type=="folder":
-            raise HTTPException(status_code=500, detail=f"分析结果{analysis_result_id}是文件夹类型，不能预览表格!")
-        content = file_utils.get_table_content(result_one["content"],row_num)
+        result_one = go_file_service.find_by_file_id(conn, analysis_result_id)
+        if not result_one:
+            raise HTTPException(status_code=404, detail=f"文件{analysis_result_id}不存在!")
+        content = file_utils.get_table_content(result_one["path"], row_num)
     return content
 
 

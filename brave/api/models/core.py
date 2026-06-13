@@ -246,6 +246,22 @@ analysis_result = Table(
     Column("analysis_result_hash", String(255))
 )
 
+go_file = Table(
+    "go_file",
+    meta,
+    Column("id", Integer, primary_key=True),
+    Column("file_id", String(255)),
+    Column("file_name", String(255)),
+    Column("path", Text),
+    Column("format", String(64)),
+    Column("size", Integer),
+    Column("md5", String(64)),
+    Column("storage", String(32)),
+    Column("description", Text),
+    Column("created_at", DateTime, default=datetime.now),
+    Column("updated_at", DateTime, onupdate=datetime.now),
+)
+
 literature = Table(
     "literature",
     meta,

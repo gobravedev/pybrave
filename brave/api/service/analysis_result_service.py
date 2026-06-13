@@ -6,6 +6,7 @@ from brave.api.models.core import analysis_result, samples,analysis,t_pipeline_c
 from brave.api.schemas.analysis_result import AnalysisResult,AnalysisResultQuery, PageAnalysisResultQuery
 from sqlalchemy import and_, desc, select,case,or_,func
 from brave.api.service import sample_service
+from brave.api.service import go_file_service
 import json
 import uuid
 from collections import defaultdict
@@ -390,8 +391,33 @@ def find_analyais_result_by_ids( conn,value):
     ids = value
     if not isinstance(value,list):
         ids = [value]
-    analysis_result = find_analyais_result(conn,AnalysisResultQuery(ids=ids,build_collected=False))
-    analysis_result = [model_dump_one(item) for item in analysis_result]
+#       analysis_result = find_analyais_result(conn,AnalysisResultQuery(ids=ids,build_collected=False))
+#     analysis_result = [model_dump_one(item) for item in analysis_result]
+    file_list = go_file_service.find_by_ids(conn, ids)
+    file_map = {str(item["id"]): item for item in file_list}
+
+    analysis_result = []
+    for file_id in ids:
+        item = file_map.get(file_id)
+        if not item:
+            continue
+
+        # Keep compatible keys for existing parsing logic during migration.
+        analysis_result.append({
+            "id": item["id"],
+            "analysis_result_id": str(item["id"]),
+            "sample_id": "",
+            "file_name": item.get("file_name") or "",
+            "component_id": "",
+            "file_type": item.get("format") or "",
+            "path": item.get("path") or "",
+            "format": item.get("format") or "",
+            "size": item.get("size") or 0,
+            "md5": item.get("md5") or "",
+            "storage": item.get("storage") or "",
+            "description": item.get("description") or "",
+        })
+
     if len(analysis_result)!=len(set(ids)):
         raise HTTPException(status_code=500, detail="数据存在问题!")
     # if not isinstance(value,list) and len(analysis_result)==1:
