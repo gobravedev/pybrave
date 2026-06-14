@@ -372,10 +372,10 @@ class BaseAnalysis(ABC):
         module = importlib.import_module(default_module['module'])
 
         
-
+        input_type_file_names = [item['name'] for item in formJson if "input_type" in item and item["input_type"]=="file"] if formJson else []
     
         db_ids_dict = {key: get_ids(request_param[key]) for key in query_name_list if key in request_param}
-        db_dict = { key:analysis_result_service.find_analyais_result_by_ids(conn,value) for key,value in  db_ids_dict.items()}
+        db_dict = { key:analysis_result_service.find_analyais_result_by_ids(conn,value) for key,value in  db_ids_dict.items() if key in input_type_file_names}
         # project_list = [item["project"] for item_list in db_dict.values() for item in item_list]
         # project_list = list(set(project_list))
         # metadata_form =[]
