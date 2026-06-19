@@ -20,6 +20,7 @@ from brave.api.enum.component_script import ScriptName
 from sqlalchemy import  Column, Integer, String, Text, select, cast, null,text,case
 from .notebook import generate_notebook
 import brave.api.service.container_service as container_service
+import brave.api.service.container_template_service as container_template_service
 from brave.api.models.core import t_container
 
 
@@ -372,8 +373,10 @@ def find_pipeline_by_id(conn,component_id):
     if find_component:
         find_component = dict(find_component)
         if find_component["container_id"]:
-            find_container = container_service.find_container_by_id(conn,find_component["container_id"])
-            find_component['container'] = find_container
+            find_container = container_template_service.find_container_template_by_id(conn,find_component["container_id"])
+            if find_container:
+                find_component['container'] = find_container
+                find_component["container_name"] = find_container["name"]
         # if find_component["sub_container_id"]:
         #     find_container = container_service.find_container_by_id(conn,find_component["sub_container_id"])
         #     find_component['sub_container'] = find_container

@@ -1,8 +1,8 @@
 
 from brave.api.executor.base import JobExecutor
 from brave.api.schemas.container import ListContainerQuery, PageContainerQuery,SaveContainer
-from brave.api.models.core import t_container
-from sqlalchemy import delete, select, and_, join, func,insert,update
+from brave.api.models.core import t_container, t_container_template, t_container_image
+from sqlalchemy import delete, select, and_, join, func,insert,update, or_
 # from brave.api.service.pipeline import get_pipeline_dir 
 import json
 
@@ -45,6 +45,51 @@ def find_container_by_id(conn,container_id):
    
     stmt = stmt.where(t_container.c.container_id ==container_id)
     find_container = conn.execute(stmt).mappings().first()
+    return find_container
+
+
+def find_container_template_with_image_by_id(conn, template_id):
+    stmt = (
+        select(
+            t_container_template.c.id.label("container_id"),
+            t_container_template.c.image_id.label("image_id"),
+            t_container_template.c.command.label("command"),
+            t_container_template.c.port.label("port"),
+            t_container_template.c.change_uid.label("change_uid"),
+            t_container_template.c.env.label("envionment"),
+            t_container_template.c.volumes.label("volumes"),
+            t_container_template.c.labels.label("labels"),
+            t_container_image.c.full_name.label("image"),
+        )
+        .select_from(
+            t_container_template.outerjoin(
+                t_container_image,
+                t_container_template.c.image_id == t_container_image.c.id,
+            )
+        )
+        .where(
+            or_(
+                t_container_template.c.id == template_id,
+                t_container_template.c.id == str(template_id),
+            )
+        )
+    )
+    find_container = conn.execute(stmt).mappings().first()
+    if not find_container:
+        return None
+
+    # Keep a legacy-compatible shape for existing executor logic.
+    find_container = dict(find_container)
+    for field in ["envionment", "volumes", "labels"]:
+        value = find_container.get(field)
+        if value is None:
+            find_container[field] = ""
+        elif not isinstance(value, str):
+            find_container[field] = json.dumps(value, ensure_ascii=False)
+
+    port_value = find_container.get("port")
+    find_container["port"] = "" if port_value is None else str(port_value)
+    find_container["version"] = ""
     return find_container
 
 def save_container(conn,saveContainer):

@@ -66,7 +66,7 @@ class AnalysisExecuterModal(BaseModel):
     command_log_path: Optional[str]=None
     run_type:Optional[str]=None
     image: Optional[str]=None
-    container_id: Optional[str]=None
+    container_id: Optional[int]=None
     # change_uid: Optional[str]=None
     ports: Optional[Any]=None
     log_path: Optional[str]=None

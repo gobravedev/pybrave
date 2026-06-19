@@ -100,19 +100,19 @@ class DockerExecutorV2(JobExecutor):
         group_id = os.getgid()
         used_namespace=None
         with get_engine().begin() as conn: 
-            find_container = container_service.find_container_by_id(conn,job.container_id)
+            find_container = container_service.find_container_template_with_image_by_id(conn, job.container_id)
             if not find_container:
                 raise RuntimeError(f"Container {job.container_id} not found")
             used_namespace = namespace_service.get_used_namespace(conn)
 
 
         try:
-            self.client.images.get(find_container.image)  # 确保镜像存在，否则会在运行时失败
+            self.client.images.get(find_container["image"])  # 确保镜像存在，否则会在运行时失败
         except ImageNotFound:
-            # raise RuntimeError(f"Image {find_container.image} not found for container {job.container_id}")
-            print(f"Image {find_container.image} not found for container {job.container_id}, pulling image...")
-            # self.pull_image(find_container.container_id,find_container.image)
-            self.pull_image_sync(find_container.container_id,find_container.image)
+            # raise RuntimeError(f"Image {find_container['image']} not found for container {job.container_id}")
+            print(f"Image {find_container['image']} not found for container {job.container_id}, pulling image...")
+            # self.pull_image(find_container['container_id'], find_container['image'])
+            self.pull_image_sync(str(job.container_id), find_container["image"])
 
         # "DISABLE_AUTH":true,
         # "USERID":"$USERID",
@@ -231,10 +231,23 @@ class DockerExecutorV2(JobExecutor):
             volumes_str = find_container["volumes"]
             volumes_str = volumes_str.replace("$R_PROFILE", str(rprofile_path))
             print(volumes_str)
-            volumes_dict = json.loads(volumes_str)
-            for k,v in volumes_dict.items():
-                if os.path.exists(k):
-                    volumes.update({ k: v})
+            volumes_config = json.loads(volumes_str)
+            if isinstance(volumes_config, list):
+                for item in volumes_config:
+                    source = item.get("source")
+                    target = item.get("target")
+                    mode = item.get("mode", "rw")
+                    if source and target and os.path.exists(source):
+                        volumes.update({
+                            source: {
+                                "bind": target,
+                                "mode": mode
+                            }
+                        })
+            elif isinstance(volumes_config, dict):
+                for k, v in volumes_config.items():
+                    if os.path.exists(k):
+                        volumes.update({k: v})
         if job.run_id.startswith("node-") or job.run_id.startswith("nserver-"):
             #  job.workspace_dir:{
             #             "bind": job.workspace_dir,
@@ -258,7 +271,7 @@ class DockerExecutorV2(JobExecutor):
             entrypoint="bash"
         try:
             container: Container = self.client.containers.run(
-                image=find_container.image,
+                image=find_container["image"],
                 name=job.run_id,
                 user= docker_uid,
                 group_add=["users",str(sock_gid)],

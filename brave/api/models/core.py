@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, DateTime, Table
+from sqlalchemy import BigInteger, Column, DateTime, Float, Table
 from sqlalchemy.sql.sqltypes import Integer, String,Boolean
 from brave.api.config.db import meta
 # from sqlalchemy.dialects.mysql import LONGTEXT
@@ -489,6 +489,52 @@ t_container = Table(
     Column("port", String(255)),
     Column("labels", Text().with_variant(LONGTEXT(), "mysql")),
     Column("change_uid", Boolean, default=True),
+    Column("created_at", DateTime, default=datetime.now),
+    Column("updated_at", DateTime, onupdate=datetime.now)
+)
+
+
+t_container_template = Table(
+    "go_container_template",
+    meta,
+    Column("id", BigInteger, primary_key=True),
+    Column("name", String(255)),
+    Column("description", Text().with_variant(LONGTEXT(), "mysql")),
+    Column("type", String(20)),
+    Column("image_id", BigInteger),
+    Column("command", Text().with_variant(LONGTEXT(), "mysql")),
+    Column("cpu", Float),
+    Column("memory", BigInteger),
+    Column("work_dir", String(512)),
+    Column("port", Integer),
+    Column("app_type", String(32)),
+    Column("env", JSON),
+    Column("mounts", JSON),
+    Column("volumes", JSON),
+    Column("labels", JSON),
+    Column("change_uid", Boolean, default=False),
+    Column("created_at", DateTime, default=datetime.now),
+    Column("updated_at", DateTime, onupdate=datetime.now)
+)
+
+
+t_container_image = Table(
+    "go_container_image",
+    meta,
+    Column("id", BigInteger, primary_key=True),
+    Column("name", String(255)),
+    Column("tag", String(128)),
+    Column("library_version", String(128)),
+    Column("registry", String(255)),
+    Column("namespace", String(255)),
+    Column("full_name", String(512)),
+    Column("digest", String(255)),
+    Column("description", Text().with_variant(LONGTEXT(), "mysql")),
+    Column("size", BigInteger),
+    Column("status", String(32)),
+    Column("pull_policy", String(32)),
+    Column("last_pull_time", DateTime),
+    Column("last_error", Text().with_variant(LONGTEXT(), "mysql")),
     Column("created_at", DateTime, default=datetime.now),
     Column("updated_at", DateTime, onupdate=datetime.now)
 )
