@@ -142,6 +142,8 @@ class DockerExecutorV2(JobExecutor):
                 
             if not os.path.exists(r_package_dir):
                 os.makedirs(r_package_dir)
+        
+            envionment = envionment.replace("$WORKSPACE_PATH", job.workspace_dir)
 
             envionment = envionment.replace("$USERID", str(user_id))
             envionment = envionment.replace("$GROUPID", str(group_id))

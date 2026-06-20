@@ -460,11 +460,11 @@ def list_analysis(conn,query:QueryAnalysis):
         t_pipeline_components.c.component_type.label("component_type"),
         t_pipeline_components.c.tools_container_id.label("tools_container_id"),
         t_project.c.project_name.label("project_name"),
-        t_container.c.name.label("container_name"),
-        t_container.c.image.label("container_image"),
-        t_container.c.container_id.label("container_id"),
-        t_container.c.image_status.label("image_status"),
-        t_container.c.image_id.label("image_id"),
+        # t_container.c.name.label("container_name"),
+        # t_container.c.image.label("container_image"),
+        # t_container.c.container_id.label("container_id"),
+        # t_container.c.image_status.label("image_status"),
+        # t_container.c.image_id.label("image_id"),
         t_pipeline_components_relation.c.name.label("relation_name")
         # t_sub_container.c.name.label("sub_container_name"),
         # t_sub_container.c.image.label("sub_container_image")
@@ -473,7 +473,7 @@ def list_analysis(conn,query:QueryAnalysis):
     stmt = stmt.select_from(
         t_analysis.outerjoin(t_pipeline_components,t_analysis.c.component_id==t_pipeline_components.c.component_id)
         .outerjoin(t_project,t_analysis.c.project==t_project.c.project_id)
-        .outerjoin(t_container,t_pipeline_components.c.container_id==t_container.c.container_id)
+        # .outerjoin(t_container,t_pipeline_components.c.container_id==t_container.c.container_id)
         .outerjoin(t_pipeline_components_relation,t_analysis.c.relation_id==t_pipeline_components_relation.c.relation_id)
 
         # .outerjoin(t_sub_container,t_pipeline_components.c.sub_container_id==t_sub_container.c.container_id)
@@ -494,8 +494,8 @@ def list_analysis(conn,query:QueryAnalysis):
         for field in ["created_at", "updated_at"]:
             if field in new_row and new_row[field]:
                 new_row[field] = new_row[field].strftime("%Y-%m-%d %H:%M:%S")
-        if new_row["tools_container_id"]:
-            new_row["tools_container_id"] = json.loads(new_row["tools_container_id"])
+        # if new_row["tools_container_id"]:
+        #     new_row["tools_container_id"] = json.loads(new_row["tools_container_id"])
         formatted_result.append(new_row)
 
     return {
@@ -662,7 +662,7 @@ async def run_analysis_node(conn,analysis_node,run_type):
     
     component = conn.execute(select(t_pipeline_components).where(t_pipeline_components.c.component_id==analysis_node['script_id'])).mappings().first()
 
-    if   not component["container_id"]:
+    if   not component["container_template_id"]:
         raise HTTPException(status_code=500, detail=f"please config container id") 
 
     # find_container = container_service.find_container_by_id(conn,analysis_["container_id"])
@@ -670,7 +670,7 @@ async def run_analysis_node(conn,analysis_node,run_type):
     analysis_node["run_id"] = f"{run_type}-{analysis_node_id}"
 
 
-    analysis_node["container_id"] =component["container_id"]
+    analysis_node["container_id"] =component["container_template_id"]
     # if run_type == "node":
     #     analysis_node["container_id"] =component["container_id"]
     # # elif run_type == "tools":

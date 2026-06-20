@@ -316,7 +316,11 @@ t_pipeline_components = Table(
     Column("description", Text().with_variant(LONGTEXT(), "mysql")), 
     Column("component_ids",Text().with_variant(LONGTEXT(), "mysql")),
     Column("img", String(255)), 
-    Column("container_id", String(255)),
+    # Column("container_id", BigInteger, key="container_template_id"),
+    Column(
+        "container_template_id",  # 数据库列名
+        BigInteger,
+    ),
     Column("tools_container_id", Text),
     Column("prompt",Text().with_variant(LONGTEXT(), "mysql")),
     Column("io_schema",Text().with_variant(LONGTEXT(), "mysql")),

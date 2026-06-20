@@ -372,8 +372,8 @@ def find_pipeline_by_id(conn,component_id):
     # component_type = find_component["component_type"]
     if find_component:
         find_component = dict(find_component)
-        if find_component["container_id"]:
-            find_container = container_template_service.find_container_template_by_id(conn,find_component["container_id"])
+        if find_component["container_template_id"]:
+            find_container = container_template_service.find_container_template_by_id(conn,find_component["container_template_id"])
             if find_container:
                 find_component['container'] = find_container
                 find_component["container_name"] = find_container["name"]
@@ -386,6 +386,7 @@ def find_pipeline_by_id(conn,component_id):
     #     find_container = container_service.find_container_by_id(conn,find_component["container_id"])
     #     find_component['container'] = find_container
         # find_component['container_name'] = find_container["name"]
+    find_component["container_template_id"] = str(find_component["container_template_id"])
     return find_component
 
 def find_component_by_parent_id(conn,parent_id,relation_type=None):
